@@ -1,4 +1,4 @@
-# Analysis of version adoptions on Pypi
+# Analysis of version adoptions on PyPI
 
 We get PyPI download statistics via Google's BigQuery using the
 [pypinfo](https://github.com/ofek/pypinfo/) tool.

@@ -105,8 +105,8 @@ def plot_main():
         by_version[row["python_version"]][row["start_date"]] = row["download_count"]
     for version, data_points in by_version.items():
         plt.plot(data_points.keys(), data_points.values(), label=version)
-    plt.xlabel("month")
-    plt.ylabel("pypi downloads")
+    plt.xlabel("Date")
+    plt.ylabel("PyPI downloads")
     plt.legend()
     plt.savefig("python-versions.png")
 
