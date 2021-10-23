@@ -11,6 +11,9 @@ from pypinfo.fields import PythonVersion
 from pypinfo.core import build_query, create_client, create_config, parse_query_result
 from pypinfo.db import get_credentials
 import matplotlib.pyplot as plt
+from matplotlib.dates import date2num
+from scipy.interpolate import make_interp_spline
+import numpy as np
 
 
 class DB:
@@ -98,13 +101,30 @@ def fetch_main():
                 )
 
 
+def mean_date(a: datetime, b: datetime) -> datetime:
+    return a + (b - a) / 2
+
+
 def plot_main():
     db = DB()
-    by_version = defaultdict(dict)
-    for row in db.fetch_python_version():
-        by_version[row["python_version"]][row["start_date"]] = row["download_count"]
-    for version, data_points in by_version.items():
-        plt.plot(data_points.keys(), data_points.values(), label=version)
+    by_version = defaultdict(lambda: [[], []])
+    versions = db.fetch_python_version()
+    biggest_value = max(version["download_count"] for version in versions)
+    for row in versions:
+        if row["download_count"] > biggest_value / 20:
+            by_version[row["python_version"]][0].append(
+                mean_date(row["start_date"], row["end_date"])
+            )
+            by_version[row["python_version"]][1].append(row["download_count"])
+    plt.figure(figsize=(16, 8))
+    for version, (x, y) in by_version.items():
+        if len(x) <= 2:
+            plt.plot(x, y)
+            continue
+        smooth_x = np.linspace(date2num(min(x)), date2num(max(x)), 200)
+        spline = make_interp_spline([date2num(d) for d in x], y, k=2)
+        smooth_y = spline(smooth_x)
+        plt.plot(smooth_x, smooth_y, label=version)
     plt.xlabel("Date")
     plt.ylabel("PyPI downloads")
     plt.legend()
