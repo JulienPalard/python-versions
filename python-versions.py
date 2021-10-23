@@ -116,10 +116,12 @@ def plot_main():
                 mean_date(row["start_date"], row["end_date"])
             )
             by_version[row["python_version"]][1].append(row["download_count"])
-    plt.figure(figsize=(16, 8))
+    plt.figure(figsize=(10, 10 * 2 / 3))
     for version, (x, y) in by_version.items():
+        if version is None:
+            continue
         if len(x) <= 2:
-            plt.plot(x, y)
+            plt.plot(x, y, label=version)
             continue
         smooth_x = np.linspace(date2num(min(x)), date2num(max(x)), 200)
         spline = make_interp_spline([date2num(d) for d in x], y, k=2)
