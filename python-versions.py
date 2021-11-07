@@ -126,7 +126,7 @@ def plot_main():
         smooth_x = np.linspace(date2num(min(x)), date2num(max(x)), 200)
         spline = make_interp_spline([date2num(d) for d in x], y, k=2)
         smooth_y = spline(smooth_x)
-        plt.plot(smooth_x, smooth_y, label=version)
+        plt.plot_date(smooth_x, smooth_y, label=version, fmt="-")
     plt.xlabel("Date")
     plt.ylabel("PyPI downloads")
     plt.legend()
