@@ -116,6 +116,7 @@ def plot_main():
                 mean_date(row["start_date"], row["end_date"])
             )
             by_version[row["python_version"]][1].append(row["download_count"])
+    plt.style.use("tableau-colorblind10")
     plt.figure(figsize=(10, 10 * 2 / 3))
     for version, (x, y) in by_version.items():
         if version is None:
