@@ -20,5 +20,11 @@ Then plot it using:
 
 ## Data
 
+### Number of pypi.org downloads
 
 ![](python-versions.png)
+
+
+### Percentage of pypi.org downloads
+
+![](python-versions-pct.png)

@@ -6,7 +6,9 @@ import sqlite3
 import sys
 from datetime import datetime, timedelta, date
 from collections import defaultdict
+from itertools import cycle
 
+import pandas as pd
 from pypinfo.fields import PythonVersion
 from pypinfo.core import build_query, create_client, create_config, parse_query_result
 from pypinfo.db import get_credentials
@@ -118,6 +120,7 @@ def plot_main():
             by_version[row["python_version"]][1].append(row["download_count"])
     plt.style.use("tableau-colorblind10")
     plt.figure(figsize=(10, 10 * 2 / 3))
+    fmt = iter(cycle(["-", "--", ":", "-."]))
     for version, (x, y) in by_version.items():
         if version is None:
             continue
@@ -127,14 +130,40 @@ def plot_main():
         smooth_x = np.linspace(date2num(min(x)), date2num(max(x)), 200)
         spline = make_interp_spline([date2num(d) for d in x], y, k=2)
         smooth_y = spline(smooth_x)
-        plt.plot_date(smooth_x, smooth_y, label=version, fmt="-")
+        plt.plot_date(smooth_x, smooth_y, label=version, fmt=next(fmt))
     plt.xlabel("Date")
     plt.ylabel("PyPI downloads")
     plt.legend()
     plt.savefig("python-versions.png")
 
 
+def plot_pct():
+    db = DB()
+    versions = pd.DataFrame(
+        db.fetch_python_version(),
+        columns=["start_date", "end_date", "python_version", "download_count"],
+        dtype="str",
+    )
+    versions["download_count"] = pd.to_numeric(versions["download_count"])
+    versions["python_version"].fillna("Other", inplace=True)
+    versions = versions.merge(
+        versions.groupby("start_date").agg(monthly_downloads=("download_count", "sum")),
+        on="start_date",
+    )
+    versions["pct"] = 100 * versions.download_count / versions.monthly_downloads
+    versions["date"] = pd.to_datetime(versions.start_date) + timedelta(days=14)
+    versions.set_index(["python_version", "date"], inplace=True)
+    to_plot = versions.pct.unstack(0, fill_value=0)
+    to_plot["Other"] += to_plot["2.6"] + to_plot["3.3"] + to_plot["3.4"]
+    del to_plot["2.6"], to_plot["3.3"], to_plot["3.4"]
+    print(to_plot)
+    plt.style.use("tableau-colorblind10")
+    to_plot.plot.area(stacked=True, figsize=(10, 10 * 2 / 3))
+    plt.savefig("python-versions-pct.png")
+
+
 if __name__ == "__main__":
     if "--fetch" in sys.argv:
         fetch_main()
+    plot_pct()
     plot_main()
