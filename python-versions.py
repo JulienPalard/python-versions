@@ -6,7 +6,7 @@ import sqlite3
 import sys
 from datetime import datetime, timedelta, date
 from collections import defaultdict
-from itertools import cycle
+from itertools import cycle, count
 
 import pandas as pd
 from pypinfo.fields import PythonVersion
@@ -84,9 +84,9 @@ def query_python_versions(start_date: str, end_date: str) -> list[tuple[str, int
 def fetch_main():
     db = DB()
     today = date.today()
-    for year_in_the_past in 1, 0:
+    for year_in_the_past in count():
         year = today.year - year_in_the_past
-        for month in range(1, 13):
+        for month in reversed(range(1, 13)):
             start_date = date(year, month, 1)
             end_date = start_date.replace(
                 day=calendar.monthrange(year, month)[1]
@@ -154,9 +154,10 @@ def plot_pct():
     versions["date"] = pd.to_datetime(versions.start_date) + timedelta(days=14)
     versions.set_index(["python_version", "date"], inplace=True)
     to_plot = versions.pct.unstack(0, fill_value=0)
-    to_plot["Other"] += to_plot["2.6"] + to_plot["3.3"] + to_plot["3.4"]
-    del to_plot["2.6"], to_plot["3.3"], to_plot["3.4"]
-    print(to_plot)
+    for version in to_plot:
+        if to_plot[version].sum() < to_plot.sum().sum() / 75:
+            to_plot["Other"] += to_plot[version]
+            del to_plot[version]
     plt.style.use("tableau-colorblind10")
     to_plot.plot.area(stacked=True, figsize=(10, 10 * 2 / 3))
     plt.savefig("python-versions-pct.png")
