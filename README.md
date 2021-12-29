@@ -1,7 +1,11 @@
 # Analysis of version adoptions on PyPI
 
-We get PyPI download statistics via Google's BigQuery using the
-[pypinfo](https://github.com/ofek/pypinfo/) tool.
+We get
+[publicly available PyPI download statistics](https://bigquery.cloud.google.com/table/bigquery-public-data:pypi.downloads)
+on Google BigQuery using [pypinfo](https://github.com/ofek/pypinfo/).
+
+[Here](https://github.com/pypa/linehaul-cloud-function) is the repo
+for the open-source code pushing the pypi stats to BigQuery.
 
 
 ## Usage
