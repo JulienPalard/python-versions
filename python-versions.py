@@ -140,7 +140,20 @@ def plot_main():
     plt.savefig("python-versions.png")
 
 
+HIDE = {"1.17", "2.4", "2.5", "2.6", "3.2", "3.3", "3.4"}
+
+
 def plot_pct():
+    def by_version(version_string):
+        try:
+            minor, major = version_string.split(".")
+            return float(minor), float(major)
+        except ValueError:
+            return 0, 0
+
+    def by_versions(version_strings):
+        return version_strings.map(by_version)
+
     db = DB()
     versions = pd.DataFrame(
         db.fetch_python_version(),
@@ -157,8 +170,9 @@ def plot_pct():
     versions["date"] = pd.to_datetime(versions.start_date) + timedelta(days=14)
     versions.set_index(["python_version", "date"], inplace=True)
     to_plot = versions.pct.unstack(0, fill_value=0)
+    to_plot.sort_values(by="python_version", axis=1, inplace=True, key=by_versions)
     for version in to_plot:
-        if to_plot[version].sum() < to_plot.sum().sum() / 75:
+        if version in HIDE:
             to_plot["Other"] += to_plot[version]
             del to_plot[version]
     plt.style.use("tableau-colorblind10")
