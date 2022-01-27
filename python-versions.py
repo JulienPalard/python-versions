@@ -85,6 +85,9 @@ def fetch_main():
     db = DB()
     today = date.today()
     for year_in_the_past in count():
+        if year_in_the_past < 2017:
+            # There's no data before 2017.
+            return
         year = today.year - year_in_the_past
         for month in reversed(range(1, 13)):
             start_date = date(year, month, 1)
