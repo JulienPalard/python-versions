@@ -85,10 +85,10 @@ def fetch_main():
     db = DB()
     today = date.today()
     for year_in_the_past in count():
-        if year_in_the_past < 2017:
+        year = today.year - year_in_the_past
+        if year < 2017:
             # There's no data before 2017.
             return
-        year = today.year - year_in_the_past
         for month in reversed(range(1, 13)):
             start_date = date(year, month, 1)
             end_date = start_date.replace(
@@ -171,6 +171,7 @@ def plot_pct():
     versions.set_index(["python_version", "date"], inplace=True)
     to_plot = versions.pct.unstack(0, fill_value=0)
     to_plot.sort_values(by="python_version", axis=1, inplace=True, key=by_versions)
+    print(to_plot.tail(24))
     for version in to_plot:
         if version in HIDE:
             to_plot["Other"] += to_plot[version]
