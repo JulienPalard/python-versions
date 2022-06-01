@@ -157,27 +157,34 @@ def plot_pct():
     db = DB()
     versions = pd.DataFrame(
         db.fetch_python_version(),
-        columns=["start_date", "end_date", "python_version", "download_count"],
+        columns=["start_date", "end_date", "Python version", "download_count"],
         dtype="str",
     )
     versions["download_count"] = pd.to_numeric(versions["download_count"])
-    versions["python_version"].fillna("Other", inplace=True)
+    versions["Python version"].fillna("Other", inplace=True)
     versions = versions.merge(
         versions.groupby("start_date").agg(monthly_downloads=("download_count", "sum")),
         on="start_date",
     )
     versions["pct"] = 100 * versions.download_count / versions.monthly_downloads
     versions["date"] = pd.to_datetime(versions.start_date) + timedelta(days=14)
-    versions.set_index(["python_version", "date"], inplace=True)
+    versions.set_index(["Python version", "date"], inplace=True)
     to_plot = versions.pct.unstack(0, fill_value=0)
-    to_plot.sort_values(by="python_version", axis=1, inplace=True, key=by_versions)
+    to_plot.sort_values(
+        by="Python version", ascending=False, axis=1, inplace=True, key=by_versions
+    )
     print(to_plot.tail(24))
-    for version in to_plot:
-        if version in HIDE:
-            to_plot["Other"] += to_plot[version]
-            del to_plot[version]
+    for version in HIDE:
+        del to_plot[version]
+    del to_plot["Other"]
     plt.style.use("tableau-colorblind10")
-    to_plot.plot.area(stacked=True, figsize=(10, 10 * 2 / 3))
+    to_plot.plot.area(
+        stacked=True,
+        figsize=(10, 10 * 2 / 3),
+        title="% of PyPI download by Python version",
+        legend="reverse",
+        ylabel="%",
+    )
     plt.savefig("python-versions-pct.png")
 
 
