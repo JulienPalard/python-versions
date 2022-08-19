@@ -1,6 +1,7 @@
 """Module to fetch and graph adoption of Python releases.
 """
 
+import argparse
 import calendar
 import sqlite3
 import sys
@@ -188,8 +189,19 @@ def plot_pct():
     plt.savefig("python-versions-pct.png")
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--fetch",
+        action="store_true",
+        help="Fetch more data instead of just displaying them",
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    if "--fetch" in sys.argv:
+    args = parse_args()
+    if args.fetch:
         fetch_main()
     plot_pct()
     plot_main()
